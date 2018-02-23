@@ -99,7 +99,6 @@ class MDNet(nn.Module):
         return params
     
     def forward(self, x, k=0, in_layer='conv1', out_layer='fc6'):
-        #
         # forward model from in_layer to out_layer
 
         run = False
