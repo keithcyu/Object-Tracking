@@ -42,16 +42,24 @@ def svd_approx(model):
     # put it back to model OMG how the fuck????
     # need to declare a whole new model.py... fuck...
     # I think I can just delete the ordered dict or layers and create a new one
-    # what should the new layer be? it isn't linear anymore? or linear with 0 weight? no! the 0 weight will be trained
-# how do I stop the 0 weight from being trained?
-# can set linear layer.bias to false!!!!
-# forward function should stay the same for the new one
-# (forward function only applies the layers in sequence)
-    del model.layers['fc5']
-    model.layers.append('fc5', nn.Sequential(nn.Dropout(0.5),
-                                             nn.Linear(512, k, bias=false),
-                                             nn.Linear(k, k, bias=false),
-                                             nn.Linear(k, 512)))
+    # what should the new layer be? 
+    # it isn't linear anymore? or linear with 0 weight? 
+    # no! the 0 weight will be trained
+    # how do I stop the 0 weight from being trained?
+    # can set linear layer.bias to false!!!!
+    # forward function should stay the same for the new one
+    # (forward function only applies the layers in sequence)
+
+    # try to set model.layers
+
+    # cannot delete, need to construct a new class
+    # try to set model.layers
+    # del model.layers['fc5']
+    model.layers[4][0] = nn.Sequential(nn.Dropout(0.5), nn.Linear(512, k, bias=False), nn.Linear(k, k, bias=False), nn.Linear(k, 512))
+    
+    # cannot assign try deleting the layer and create a new forward?
+    print(model.layers[4])
+    
 
 # set parameters for new fc5
     for name, param in model.layers.fc5.named_parameters():
@@ -64,6 +72,11 @@ def svd_approx(model):
     # choose proper k (# of rank using) (guess one for now)
     
     # done?
+# class MDNet_SVD(nn.Module)
+    # def __init__(self, model_path=None, K=1):
+        # super(MDNet, self).__init__()
+        # self.K = K
+        # self.layers = nn.Sequential
 
 if __name__ == "__main__":
 
