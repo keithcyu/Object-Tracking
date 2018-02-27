@@ -7,10 +7,11 @@ import torch
 import torch.optim as optim
 from torch.autograd import Variable
 
+from options import *
 sys.path.insert(0, '../pretrain')
 from data_prov import *
 from model_svd import *
-from options import *
+# from options import *
 
 img_home = '../dataset/'
 data_path = '../pretrain/data/vot-otb.pkl'
@@ -29,7 +30,10 @@ def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['moment
 
 
 def train_mdnet():
-    
+
+    print(opts['init_model_path'])
+    print(opts['model_path'])
+
     ## Init dataset ##
     with open(data_path, 'rb') as fp: # r: reading, b: binary mode
         # pickle: binary file reader, reconstruct and return the original object hierarchy        
@@ -92,6 +96,7 @@ def train_mdnet():
             if opts['use_gpu']:
                 model = model.cpu()
             states = {'shared_layers': model.layers.state_dict()}
+            states['branches_layer'] = model.branches.state_dict()
             print "Save model to %s" % opts['model_path']
             torch.save(states, opts['model_path'])
             if opts['use_gpu']:

@@ -1,4 +1,5 @@
 import os
+import sys
 import scipy.io
 import numpy as np
 from collections import OrderedDict
@@ -7,6 +8,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch
+
+sys.path.insert(0, '../modules')
+from model import *
 
 def append_params(params, module, prefix):
     for child_name, child in module.named_children():
@@ -65,10 +69,12 @@ class MDNet_svd(nn.Module):
                 ('fc4',   nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(512 * 3 * 3, 512),
                                         nn.ReLU())),
+                # fc5 should not have 3 linear layers
+                # linear layers apply onto x for each layer
                 ('fc5',   nn.Sequential(nn.Dropout(0.5),
-                                        nn.Linear(512, k, bias=False),
-                                        nn.Linear(k, k, bias=False),
                                         nn.Linear(k, 512, bias=False),
+                                        nn.Linear(k, k, bias=False),
+                                        nn.Linear(512, k, bias=True),
                                         nn.ReLU()))]))
         
         self.branches = nn.ModuleList([nn.Sequential(nn.Dropout(0.5), 
@@ -76,7 +82,7 @@ class MDNet_svd(nn.Module):
         
         if model_path is not None:
             if os.path.splitext(model_path)[1] == '.pth':
-                self.load_model(model_path)
+                self.load_model_svd(model_path, k)
             elif os.path.splitext(model_path)[1] == '.mat':
                 self.load_mat_model(model_path)
             else:
@@ -123,6 +129,34 @@ class MDNet_svd(nn.Module):
             return x
         elif out_layer=='fc6_softmax':
             return F.softmax(x)
+    
+    def load_model_svd(self, model_path, k):
+        states = torch.load(model_path)
+        shared_layers = states['shared_layers']
+        branches_layer = states['branches_layer']
+        
+        # load normal layers
+        load_layers = {key: value for key, value in shared_layers.items() if 'fc5' not in key}
+        self.layers.load_state_dict(load_layers, strict=False)
+        
+        # load braches
+        self.branches.load_state_dict(branches_layer, strict=False)
+
+        # do svd on other layers
+        fc5_weight = shared_layers['fc5.1.weight']
+        fc5_bias = shared_layers['fc5.1.bias']
+        U, S, V = fc5_weight.svd()
+
+        # reduce rank
+        Uk = U[:, :k]
+        Sk = S[:k]
+        Vk = V[:, :k]
+
+        # write into layer
+        self.layers[4][1].weight.data = Vk.t()
+        self.layers[4][2].weight.data = torch.diag(Sk)
+        self.layers[4][3].weight.data = Uk
+        self.layers[4][3].bias.data = fc5_bias
     
     def load_model(self, model_path):
         states = torch.load(model_path)

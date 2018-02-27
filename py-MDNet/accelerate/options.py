@@ -1,10 +1,10 @@
 from collections import OrderedDict
 
 opts = OrderedDict()
-opts['use_gpu'] = False
+opts['use_gpu'] = True
 
-opts['init_model_path'] = '../models/imagenet-vgg-m.mat' # pretrain
-opts['model_path'] = '../models/mdnet_vot-otb.pth'
+opts['init_model_path'] = '../models/mdnet_vot-otb.pth' # pretrain
+opts['model_path'] = '../models/mdnet_svd_vot-otb.pth'
 
 opts['img_size'] = 107
 opts['padding'] = 16
@@ -53,4 +53,4 @@ opts['grad_clip'] = 10
 opts['lr_mult'] = {'fc':10}
 # opts['ft_layers'] = ['fc'] # commented out by pretrain
 opts['ft_layers'] = ['conv','fc']
-opts['n_cycles'] = 50 # pretrain
+opts['n_cycles'] = 1 # pretrain

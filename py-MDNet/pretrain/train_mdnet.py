@@ -91,6 +91,7 @@ def train_mdnet():
             if opts['use_gpu']:
                 model = model.cpu()
             states = {'shared_layers': model.layers.state_dict()}
+            states['branches_layer'] = model.branches.state_dict()
             print "Save model to %s" % opts['model_path']
             torch.save(states, opts['model_path'])
             if opts['use_gpu']:
