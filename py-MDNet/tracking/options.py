@@ -4,6 +4,7 @@ opts = OrderedDict()
 opts['use_gpu'] = True
 
 opts['model_path'] = '../models/mdnet_vot-otb.pth'
+opts['svd_model_path'] = '../models/mdnet_svd_vot-otb.pth'
 
 opts['img_size'] = 107
 opts['padding'] = 16

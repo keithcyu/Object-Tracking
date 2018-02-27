@@ -31,8 +31,8 @@ def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['moment
 
 def train_mdnet():
 
-    print(opts['init_model_path'])
-    print(opts['model_path'])
+    print 'initialize data from  ', opts['init_model_path']
+    print 'write trained data to ', opts['model_path']
 
     ## Init dataset ##
     with open(data_path, 'rb') as fp: # r: reading, b: binary mode

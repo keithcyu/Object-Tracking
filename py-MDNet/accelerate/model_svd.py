@@ -54,7 +54,7 @@ class MDNet_svd(nn.Module):
     def __init__(self, model_path=None, K=1):
         super(MDNet_svd, self).__init__()
         self.K = K
-        k = 200
+        k = 1
         self.layers = nn.Sequential(OrderedDict([
                 ('conv1', nn.Sequential(nn.Conv2d(3, 96, kernel_size=7, stride=2),
                                         nn.ReLU(),
@@ -180,8 +180,8 @@ class BinaryLoss(nn.Module):
         super(BinaryLoss, self).__init__()
  
     def forward(self, pos_score, neg_score):
-        pos_loss = -F.log_softmax(pos_score)[:,1]
-        neg_loss = -F.log_softmax(neg_score)[:,0]
+        pos_loss = -F.log_softmax(pos_score, dim=0)[:,1]
+        neg_loss = -F.log_softmax(neg_score, dim=0)[:,0]
         
         loss = pos_loss.sum() + neg_loss.sum()
         return loss
