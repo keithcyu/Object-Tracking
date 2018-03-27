@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 opts = OrderedDict()
-opts['use_gpu'] = True
+opts['use_gpu'] = False
 
 opts['init_model_path'] = '../models/mdnet_vot-otb.pth' # pretrain
 opts['model_path'] = '../models/mdnet_svd_vot-otb.pth'
@@ -54,3 +54,6 @@ opts['lr_mult'] = {'fc':10}
 # opts['ft_layers'] = ['fc'] # commented out by pretrain
 opts['ft_layers'] = ['conv','fc']
 opts['n_cycles'] = 1 # pretrain
+
+# accelerate
+

@@ -9,12 +9,16 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import torch
 
+import tensorly as tl
+import tensorly
+
+from decompositions import *
 sys.path.insert(0, '../modules')
 from model import *
 
 def append_params(params, module, prefix):
     for child_name, child in module.named_children():
-        for k,p in child._parameters.iteritems():
+        for k,p in child._parameters.items():
             # print(prefix, child_name, child, k)
             if p is None: continue
             
@@ -97,7 +101,7 @@ class MDNet_svd(nn.Module):
             append_params(self.params, module, 'fc6_%d'%(k))
 
     def set_learnable_params(self, layers):
-        for k, p in self.params.iteritems():
+        for k, p in self.params.items():
             if any([k.startswith(l) for l in layers]):
                 p.requires_grad = True
             else:
@@ -105,7 +109,7 @@ class MDNet_svd(nn.Module):
  
     def get_learnable_params(self):
         params = OrderedDict()
-        for k, p in self.params.iteritems():
+        for k, p in self.params.items():
             if p.requires_grad:
                 params[k] = p
         return params
@@ -118,6 +122,10 @@ class MDNet_svd(nn.Module):
             if name == in_layer:
                 run = True
             if run:
+                # TODO runtime debugging
+                # print('running', name)
+                # for name2, module2 in self.layers._modules[name].named_children():
+                    # print(name, name2, type(module2))
                 x = module(x)
                 if name == 'conv3':
                     x = x.view(x.size(0),-1)
@@ -131,12 +139,19 @@ class MDNet_svd(nn.Module):
             return F.softmax(x)
     
     def load_model_svd(self, model_path, k):
+        # load the saved model
         states = torch.load(model_path)
         shared_layers = states['shared_layers']
         branches_layer = states['branches_layer']
         
+        # in main
+        # go over model.features._modules.keys()
+        # replace model.features._modules[key]
+        # model.features -> nn.Sequencial(layers[])
+
+
         # load normal layers
-        load_layers = {key: value for key, value in shared_layers.items() if 'fc5' not in key}
+        load_layers = {key: value for key, value in list(shared_layers.items()) if 'fc5' not in key}
         self.layers.load_state_dict(load_layers, strict=False)
         
         # load braches
@@ -157,7 +172,23 @@ class MDNet_svd(nn.Module):
         self.layers[4][2].weight.data = torch.diag(Sk)
         self.layers[4][3].weight.data = Uk
         self.layers[4][3].bias.data = fc5_bias
-    
+        
+        ### TODO replace all conv layers using tucker decomposition
+        tl.set_backend('numpy')
+        for i, key in enumerate(self.layers._modules.keys()):
+            for i2, key2 in enumerate(self.layers._modules[key]._modules.keys()):
+                print((i, key)) # success
+                print((i2, key2)) # success
+
+                if isinstance(self.layers._modules[key]._modules[key2], torch.nn.modules.conv.Conv2d):
+                    conv_layer = self.layers._modules[key]._modules[key2]
+                    decomposed = tucker_decomposition_conv_layer(conv_layer)
+                    # TODO runtime debugging
+                    # for i3, key3 in enumerate(decomposed._modules.keys()):
+                        # print(i3, decomposed._modules[key3],)
+                    self.layers._modules[key]._modules[key2] = decomposed
+                    # print("decomposed", type(decomposed))
+
     def load_model(self, model_path):
         states = torch.load(model_path)
         shared_layers = states['shared_layers']
