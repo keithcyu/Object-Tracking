@@ -194,7 +194,7 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
         ax = plt.Axes(fig, [0., 0., 1., 1.])
         ax.set_axis_off()
         fig.add_axes(ax)
-        im = ax.imshow(image, aspect='normal')
+        im = ax.imshow(image, aspect='auto')
 
         if gt is not None:
             gt_rect = plt.Rectangle(tuple(gt[0,:2]),gt[0,2],gt[0,3], 
