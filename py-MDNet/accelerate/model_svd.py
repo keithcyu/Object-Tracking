@@ -76,11 +76,15 @@ class MDNet_svd(nn.Module):
                 # fc5 should not have 3 linear layers
                 # linear layers apply onto x for each layer
                 ('fc5',   nn.Sequential(nn.Dropout(0.5),
+                                        nn.Linear(512, 512),
+                                        nn.ReLu()))]))
+        """
+                ('fc5',   nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(k, 512, bias=False),
                                         nn.Linear(k, k, bias=False),
                                         nn.Linear(512, k, bias=True),
                                         nn.ReLU()))]))
-        
+        """
         self.branches = nn.ModuleList([nn.Sequential(nn.Dropout(0.5), 
                                                      nn.Linear(512, 2)) for _ in range(K)])
         
@@ -139,24 +143,25 @@ class MDNet_svd(nn.Module):
             return F.softmax(x)
     
     def load_model_svd(self, model_path, k):
+        
         # load the saved model
         states = torch.load(model_path)
         shared_layers = states['shared_layers']
         branches_layer = states['branches_layer']
         
-        # in main
-        # go over model.features._modules.keys()
-        # replace model.features._modules[key]
-        # model.features -> nn.Sequencial(layers[])
+        # load all layers
+        self.layers.load_state_dict(shared_layers, strict=False)
 
-
-        # load normal layers
+        """
+        # load layers except layer 5
         load_layers = {key: value for key, value in list(shared_layers.items()) if 'fc5' not in key}
         self.layers.load_state_dict(load_layers, strict=False)
-        
+        """
+
         # load braches
         self.branches.load_state_dict(branches_layer, strict=False)
 
+        """
         # do svd on other layers
         fc5_weight = shared_layers['fc5.1.weight']
         fc5_bias = shared_layers['fc5.1.bias']
@@ -172,7 +177,16 @@ class MDNet_svd(nn.Module):
         self.layers[4][2].weight.data = torch.diag(Sk)
         self.layers[4][3].weight.data = Uk
         self.layers[4][3].bias.data = fc5_bias
-        
+        """
+
+        ### TODO replace fully connected layer
+        for i, key in enumerate(self.layers._modules.leys()):
+            for i2, key2 in enumerate(self.layers._modules[key]._modules.keys()):
+                layer = self.layers._modules[key]._modules[key2]
+                if isinstance(layer, toch.nn.modules.Linear):
+                    decomposed = svd_decomposition_fully_connected_layer(layer)
+                    self.layers._modules[key]._modules[key2] = decomposed
+
         ### TODO replace all conv layers using tucker decomposition
         tl.set_backend('numpy')
         for i, key in enumerate(self.layers._modules.keys()):

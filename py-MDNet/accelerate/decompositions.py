@@ -148,14 +148,41 @@ def tucker_decomposition_conv_layer(layer):
     new_layers = [first_layer, core_layer, last_layer]
     return nn.Sequential(*new_layers)
 
-def svd_decomposition_fully_connected_layer(layer):
+def svd_decomposition_fully_connected_layer(layer, rank):
     """ 
     Gets a fully connected layer,
     returns a nn.Sequential object with the svd decomposition.
-    the ranks are estimated with VBMF as above cited
     """
 
     # TODO how to estimate rank using VBMF
+
+    # Perform SVD decomposition on the layer weight tensor. 
+    print(layer, rank)
+    size = layer.
+    X = layer.weight.data.numpy()
+    U, S, V = X.svd()
+
+    # reduce rank
+    Uk = U[:, :rank]
+    Sk = S[:rank]
+    Vk = V[:, :rank]
+
+    # create empty layer
+    V_layer = nn.Linear(rank, 512, bias=False)
+    S_layer = nn.Linear(rank, rank, bias = False)
+    U_layer = nn.Linear(512, rank, bias=True)
+
+    # putting weight into layer
+    V_layer.weight.data = Vk.t()
+    S_layer.weight.data = torch.diag(Sk)
+    U_layer.weight.data = Uk
+    U_layer.bias.data = layer.bias.data
+
+    # putting layer together
+    new_layers = [V_layer, S_layer, U_layer]
+    return nn.Sequential(*new_lyaers)
+
+    # TODO finished and need testing
 
 
        
