@@ -158,8 +158,8 @@ def svd_decomposition_fully_connected_layer(layer, rank):
 
     # Perform SVD decomposition on the layer weight tensor. 
     print(layer, rank)
-    size = layer.
-    X = layer.weight.data.numpy()
+    X = layer.weight.data
+    size = X.shape
     U, S, V = X.svd()
 
     # reduce rank
@@ -168,9 +168,9 @@ def svd_decomposition_fully_connected_layer(layer, rank):
     Vk = V[:, :rank]
 
     # create empty layer
-    V_layer = nn.Linear(rank, 512, bias=False)
+    V_layer = nn.Linear(rank, X.shape[1], bias=False)
     S_layer = nn.Linear(rank, rank, bias = False)
-    U_layer = nn.Linear(512, rank, bias=True)
+    U_layer = nn.Linear(X.shape[0], rank, bias=True)
 
     # putting weight into layer
     V_layer.weight.data = Vk.t()
@@ -180,7 +180,7 @@ def svd_decomposition_fully_connected_layer(layer, rank):
 
     # putting layer together
     new_layers = [V_layer, S_layer, U_layer]
-    return nn.Sequential(*new_lyaers)
+    return nn.Sequential(*new_layers)
 
     # TODO finished and need testing
 

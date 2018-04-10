@@ -77,7 +77,7 @@ class MDNet_svd(nn.Module):
                 # linear layers apply onto x for each layer
                 ('fc5',   nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(512, 512),
-                                        nn.ReLu()))]))
+                                        nn.ReLU()))]))
         """
                 ('fc5',   nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(k, 512, bias=False),
@@ -180,19 +180,19 @@ class MDNet_svd(nn.Module):
         """
 
         ### TODO replace fully connected layer
-        for i, key in enumerate(self.layers._modules.leys()):
+        for i, key in enumerate(self.layers._modules.keys()):
             for i2, key2 in enumerate(self.layers._modules[key]._modules.keys()):
                 layer = self.layers._modules[key]._modules[key2]
-                if isinstance(layer, toch.nn.modules.Linear):
-                    decomposed = svd_decomposition_fully_connected_layer(layer)
+                if isinstance(layer, torch.nn.modules.Linear):
+                    decomposed = svd_decomposition_fully_connected_layer(layer, 20)
                     self.layers._modules[key]._modules[key2] = decomposed
 
         ### TODO replace all conv layers using tucker decomposition
         tl.set_backend('numpy')
         for i, key in enumerate(self.layers._modules.keys()):
             for i2, key2 in enumerate(self.layers._modules[key]._modules.keys()):
-                print((i, key)) # success
-                print((i2, key2)) # success
+                # print((i, key)) # success
+                # print((i2, key2)) # success
 
                 if isinstance(self.layers._modules[key]._modules[key2], torch.nn.modules.conv.Conv2d):
                     conv_layer = self.layers._modules[key]._modules[key2]
