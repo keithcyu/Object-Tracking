@@ -10,7 +10,7 @@ import torch
 
 def append_params(params, module, prefix):
     for child in module.children():
-        for k,p in child._parameters.items():
+        for k,p in child._parameters.iteritems():
             if p is None: continue
             
             if isinstance(child, nn.BatchNorm2d):
@@ -85,7 +85,7 @@ class MDNet(nn.Module):
             append_params(self.params, module, 'fc6_%d'%(k))
 
     def set_learnable_params(self, layers):
-        for k, p in self.params.items():
+        for k, p in self.params.iteritems():
             if any([k.startswith(l) for l in layers]):
                 p.requires_grad = True
             else:
@@ -93,12 +93,13 @@ class MDNet(nn.Module):
  
     def get_learnable_params(self):
         params = OrderedDict()
-        for k, p in self.params.items():
+        for k, p in self.params.iteritems():
             if p.requires_grad:
                 params[k] = p
         return params
     
     def forward(self, x, k=0, in_layer='conv1', out_layer='fc6'):
+        #
         # forward model from in_layer to out_layer
 
         run = False
@@ -140,8 +141,8 @@ class BinaryLoss(nn.Module):
         super(BinaryLoss, self).__init__()
  
     def forward(self, pos_score, neg_score):
-        pos_loss = -F.log_softmax(pos_score, dim=0)[:,1]
-        neg_loss = -F.log_softmax(neg_score, dim=0)[:,0]
+        pos_loss = -F.log_softmax(pos_score)[:,1]
+        neg_loss = -F.log_softmax(neg_score)[:,0]
         
         loss = pos_loss.sum() + neg_loss.sum()
         return loss

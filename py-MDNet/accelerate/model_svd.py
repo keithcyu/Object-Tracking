@@ -13,6 +13,7 @@ import tensorly as tl
 import tensorly
 
 from decompositions import *
+from options_model import *
 sys.path.insert(0, '../modules')
 from model import *
 
@@ -73,8 +74,7 @@ class MDNet_svd(nn.Module):
                 ('fc4',   nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(512 * 3 * 3, 512),
                                         nn.ReLU())),
-                # fc5 should not have 3 linear layers
-                # linear layers apply onto x for each layer
+                
                 ('fc5',   nn.Sequential(nn.Dropout(0.5),
                                         nn.Linear(512, 512),
                                         nn.ReLU()))]))
@@ -178,7 +178,7 @@ class MDNet_svd(nn.Module):
         self.layers[4][3].weight.data = Uk
         self.layers[4][3].bias.data = fc5_bias
         """
-
+        """
         ### TODO replace fully connected layer
         for i, key in enumerate(self.layers._modules.keys()):
             for i2, key2 in enumerate(self.layers._modules[key]._modules.keys()):
@@ -186,23 +186,30 @@ class MDNet_svd(nn.Module):
                 if isinstance(layer, torch.nn.modules.Linear):
                     decomposed = svd_decomposition_fully_connected_layer(layer, 20)
                     self.layers._modules[key]._modules[key2] = decomposed
-
+        """
+    
         ### TODO replace all conv layers using tucker decomposition
         tl.set_backend('numpy')
         for i, key in enumerate(self.layers._modules.keys()):
             for i2, key2 in enumerate(self.layers._modules[key]._modules.keys()):
                 # print((i, key)) # success
                 # print((i2, key2)) # success
+                
+                if key not in opts_model['decomp_layers']:
+                    continue
 
                 if isinstance(self.layers._modules[key]._modules[key2], torch.nn.modules.conv.Conv2d):
                     conv_layer = self.layers._modules[key]._modules[key2]
+                    
                     decomposed = tucker_decomposition_conv_layer(conv_layer)
+                    # rank = max(conv_layer.weight.data.numpy().shape)//3
+                    # decomposed = cp_decomposition_conv_layer(conv_layer, rank)
                     # TODO runtime debugging
                     # for i3, key3 in enumerate(decomposed._modules.keys()):
                         # print(i3, decomposed._modules[key3],)
                     self.layers._modules[key]._modules[key2] = decomposed
                     # print("decomposed", type(decomposed))
-
+    
     def load_model(self, model_path):
         states = torch.load(model_path)
         shared_layers = states['shared_layers']
@@ -225,8 +232,8 @@ class BinaryLoss(nn.Module):
         super(BinaryLoss, self).__init__()
  
     def forward(self, pos_score, neg_score):
-        pos_loss = -F.log_softmax(pos_score, dim=0)[:,1]
-        neg_loss = -F.log_softmax(neg_score, dim=0)[:,0]
+        pos_loss = -F.log_softmax(pos_score)[:,1]
+        neg_loss = -F.log_softmax(neg_score)[:,0]
         
         loss = pos_loss.sum() + neg_loss.sum()
         return loss

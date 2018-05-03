@@ -30,8 +30,7 @@ def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['moment
 def train_mdnet():
     
     ## Init dataset ##
-    with open(data_path, 'rb') as fp: # r: reading, b: binary mode
-        # pickle: binary file reader, reconstruct and return the original object hierarchy        
+    with open(data_path, 'rb') as fp:
         data = pickle.load(fp)
 
     K = len(data)
@@ -90,6 +89,7 @@ def train_mdnet():
             best_prec = cur_prec
             if opts['use_gpu']:
                 model = model.cpu()
+            # save both shared and branches
             states = {'shared_layers': model.layers.state_dict()}
             states['branches_layer'] = model.branches.state_dict()
             print "Save model to %s" % opts['model_path']

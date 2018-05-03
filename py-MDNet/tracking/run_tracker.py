@@ -117,13 +117,6 @@ def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='
 
 
 def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
-    """
-    Parameters:
-        img_list: os.path of each imgs directory
-	init_bbox: np array of the first bounding box read
-	gt: np array of gound truth file (all)
-	savefig_dir:
-    """
 
     # Init bbox
     target_bbox = np.array(init_bbox)

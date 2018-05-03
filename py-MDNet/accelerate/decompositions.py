@@ -169,13 +169,14 @@ def svd_decomposition_fully_connected_layer(layer, rank):
 
     # create empty layer
     V_layer = nn.Linear(rank, X.shape[1], bias=False)
-    S_layer = nn.Linear(rank, rank, bias = False)
+    # S_layer = nn.Linear(rank, rank, bias = False)
     U_layer = nn.Linear(X.shape[0], rank, bias=True)
 
     # putting weight into layer
     V_layer.weight.data = Vk.t()
-    S_layer.weight.data = torch.diag(Sk)
-    U_layer.weight.data = Uk
+    # S_layer.weight.data = torch.diag(Sk)
+    # U_layer.weight.data = Uk
+    U_layer.weight.data = np.dot(torch.diag(Sk), Uk)
     U_layer.bias.data = layer.bias.data
 
     # putting layer together

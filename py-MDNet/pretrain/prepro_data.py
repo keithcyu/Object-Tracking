@@ -1,4 +1,3 @@
-from __future__ import print_function # use Python3 print
 import os
 import numpy as np
 import pickle
@@ -15,7 +14,7 @@ data = {}
 for i,seq in enumerate(seq_list):
     img_list = sorted([p for p in os.listdir(seq_home+seq) if os.path.splitext(p)[1] == '.jpg'])
     gt = np.loadtxt(seq_home+seq+'/groundtruth.txt',delimiter=',')
-    print("Loading:", seq)
+
     assert len(img_list) == len(gt), "Lengths do not match!!"
     
     if gt.shape[1]==8:

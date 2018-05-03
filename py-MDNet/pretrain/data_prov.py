@@ -26,7 +26,7 @@ class RegionDataset(data.Dataset):
         self.crop_size = opts['img_size']
         self.padding = opts['padding']
 
-        self.index = np.random.permutation(len(self.img_list)) # random permutation 0~len(img_list)
+        self.index = np.random.permutation(len(self.img_list))
         self.pointer = 0
         
         image = Image.open(self.img_list[0]).convert('RGB')
@@ -62,8 +62,7 @@ class RegionDataset(data.Dataset):
         pos_regions = torch.from_numpy(pos_regions).float()
         neg_regions = torch.from_numpy(neg_regions).float()
         return pos_regions, neg_regions
-    
-    next = __next__ # back compatible for Python2.x
+    next = __next__
 
     def extract_regions(self, image, samples):
         regions = np.zeros((len(samples),self.crop_size,self.crop_size,3),dtype='uint8')

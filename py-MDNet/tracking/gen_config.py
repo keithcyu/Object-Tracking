@@ -3,15 +3,6 @@ import json
 import numpy as np
 
 def gen_config(args):
-    """
-    Returns:
-        img_list: os.path of each imgs directory
-        init_bbox: np array of the first bounding box read
-	gt: np array of gound truth file (all)
-	savefig_dir:
-	args.display:
-	result_path:
-    """
 
     if args.seq != '':
         # generate config from a sequence name

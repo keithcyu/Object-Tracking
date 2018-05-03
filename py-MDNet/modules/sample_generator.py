@@ -36,21 +36,6 @@ def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
 
 
 class SampleGenerator():
-    """
-    Generate sample bounding boxes
-
-    Type: sampling method
-        'gaussian' : generate samples from a Gaussian distribution centered at bb
-		     -> positive samples, target candidates
-         
-        'uniform'  : generate samples from a uniform distribution around bb
-                     -> negative samples
-
-	'whole'    : generate samples from the whole image
-		     -> negative samples at the initial frame
-
-	'aspect_f' : varying aspect ratios
-    """
     def __init__(self, type, img_size, trans_f=1, scale_f=1, aspect_f=None, valid=False):
         self.type = type
         self.img_size = np.array(img_size) # (w, h)
@@ -60,7 +45,7 @@ class SampleGenerator():
         self.valid = valid
 
     def __call__(self, bb, n):
-
+        #
         # bb: target bbox (min_x,min_y,w,h)
         bb = np.array(bb, dtype='float32')
 
