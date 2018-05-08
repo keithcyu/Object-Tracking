@@ -178,15 +178,16 @@ class MDNet_svd(nn.Module):
         self.layers[4][3].weight.data = Uk
         self.layers[4][3].bias.data = fc5_bias
         """
-        """
         ### TODO replace fully connected layer
         for i, key in enumerate(self.layers._modules.keys()):
             for i2, key2 in enumerate(self.layers._modules[key]._modules.keys()):
+                if key not in opts_model['decomp_layers']:
+                    continue
+
                 layer = self.layers._modules[key]._modules[key2]
                 if isinstance(layer, torch.nn.modules.Linear):
-                    decomposed = svd_decomposition_fully_connected_layer(layer, 20)
+                    decomposed = svd_decomposition_dense_layer(layer)
                     self.layers._modules[key]._modules[key2] = decomposed
-        """
     
         ### TODO replace all conv layers using tucker decomposition
         tl.set_backend('numpy')

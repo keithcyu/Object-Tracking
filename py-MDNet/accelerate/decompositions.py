@@ -79,7 +79,7 @@ def cp_decomposition_conv_layer(layer, rank):
                     depthwise_horizontal_layer, pointwise_r_to_t_layer]
     return nn.Sequential(*new_layers)
 
-def estimate_ranks(layer):
+def estimate_ranks_tucker(layer):
     """ Unfold the 2 modes of the Tensor the decomposition will 
     be performed on, and estimates the ranks of the matrices using VBMF 
     """
@@ -100,7 +100,7 @@ def tucker_decomposition_conv_layer(layer):
         https://github.com/CasvandenBogaard/VBMF
     """
 
-    ranks = estimate_ranks(layer)
+    ranks = estimate_ranks_tucker(layer)
     print(layer, "VBMF Estimated ranks", ranks)
     core, [last, first] = \
         partial_tucker(layer.weight.data.numpy(), \
@@ -148,16 +148,33 @@ def tucker_decomposition_conv_layer(layer):
     new_layers = [first_layer, core_layer, last_layer]
     return nn.Sequential(*new_layers)
 
-def svd_decomposition_fully_connected_layer(layer, rank):
+def estimate_ranks_svd(layer):
+    """ Unfold the 2 modes of the Tensor the decomposition will 
+    be performed on, and estimates the ranks of the matrices using VBMF 
+    """
+
+    weights = layer.weight.data.numpy()
+    print(type(weights))
+    # unfold_0 = tl.base.unfold(weights, 0) 
+    # unfold_1 = tl.base.unfold(weights, 1)
+    # _, diag_0, _, _ = VBMF.EVBMF(unfold_0)
+    # _, diag_1, _, _ = VBMF.EVBMF(unfold_1)
+    # ranks = [diag_0.shape[0], diag_1.shape[1]]
+    _, diag, _, _ = VBMF.EVBMF(weights)
+    ranks = diag.shape[0]
+    return ranks
+
+def svd_decomposition_dense_layer(layer):
     """ 
     Gets a fully connected layer,
     returns a nn.Sequential object with the svd decomposition.
     """
 
     # TODO how to estimate rank using VBMF
+    rank = estimate_ranks_svd(layer)
 
     # Perform SVD decomposition on the layer weight tensor. 
-    print(layer, rank)
+    print(layer, "SVD estimated rank", rank)
     X = layer.weight.data
     size = X.shape
     U, S, V = X.svd()
@@ -176,11 +193,11 @@ def svd_decomposition_fully_connected_layer(layer, rank):
     V_layer.weight.data = Vk.t()
     # S_layer.weight.data = torch.diag(Sk)
     # U_layer.weight.data = Uk
-    U_layer.weight.data = np.dot(torch.diag(Sk), Uk)
+    U_layer.weight.data = torch.mm(Uk, torch.diag(Sk))
     U_layer.bias.data = layer.bias.data
 
     # putting layer together
-    new_layers = [V_layer, S_layer, U_layer]
+    new_layers = [V_layer, U_layer]
     return nn.Sequential(*new_layers)
 
     # TODO finished and need testing
