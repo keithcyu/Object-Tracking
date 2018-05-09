@@ -11,14 +11,14 @@
 - please refer to the README in py-MDNet
 
 ### Decomposition
-'''bash
+```bash
 cd py-MDNet/decomposition/
-'''
+```
 - edit **options.py** for training hyper parameters
 - edit **options_model.py** for layers to decompose
-'''bash
+```bash
 python3 train_mdnet_svd.py
-'''
+```
 
 # References
 - py-MDNet package: https://github.com/HyeonseobNam/py-MDNet
