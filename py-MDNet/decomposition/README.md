@@ -8,12 +8,9 @@
 ## Usage
 
 ### Pretraining and Tracking
-- please refer to the README in py-MDNet
+- please refer to the README for py-MDNet at the parent directory
 
 ### Decomposition
-'''bash
-cd py-MDNet/decomposition/
-'''
 - edit **options.py** for training hyper parameters
 - edit **options_model.py** for layers to decompose
 '''bash
