@@ -1,23 +1,23 @@
 # MDNet acceleration using Tensor Decomposition
 
 ## Prerequisites
-- python 2.7
 - python 3.#
-- [PyTorch](http://pytorch.org/) and its dependencies
 - [Tensorly](https://github.com/tensorly/tensorly)
 
 
 ## Usage
 
-### Pretraining
- - Download [VGG-M](http://www.vlfeat.org/matconvnet/models/imagenet-vgg-m.mat) (matconvnet model) and save as "models/imagenet-vgg-m.mat"
- - Download [VOT](http://www.votchallenge.net/) datasets into "dataset/vot201x"
- - edit **options.py** for training hyper parameters
- - edit **options_model.py** for layers to decompose
-``` bash
- cd pretrain
- python prepro_data.py
- python3 train_mdnet.py
+### Pretraining and Tracking
+- please refer to the README in py-MDNet
+
+### Decomposition
+```bash
+cd py-MDNet/decomposition/
+```
+- edit **options.py** for training hyper parameters
+- edit **options_model.py** for layers to decompose
+```bash
+python3 train_mdnet_svd.py
 ```
 
 # References
