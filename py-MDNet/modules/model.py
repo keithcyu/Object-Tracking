@@ -74,7 +74,7 @@ class MDNet(nn.Module):
             elif os.path.splitext(model_path)[1] == '.mat':
                 self.load_mat_model(model_path)
             else:
-                raise RuntimeError("Unkown model format: %s" % (model_path))
+                raise RuntimeError("Unknown model format: %s" % (model_path))
         self.build_param_dict()
 
     def build_param_dict(self):
