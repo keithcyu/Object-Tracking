@@ -7,8 +7,11 @@
 
 ## Usage
 
-### Pretraining and Tracking
-- please refer to the README in py-MDNet
+### Pretraining
+- please use py-MDNet to pretrain a model and copy the model into Decomposition directory
+```bash
+cp py-MDNet/models/mdnet_vot-otb.pth decomposition/models/mdnet_vot-otb.pth
+```
 
 ### Decomposition
 ```bash
@@ -19,6 +22,15 @@ cd decomposition/
 ```bash
 python3 train_mdnet_svd.py
 ```
+
+### Tracking
+```bash
+ cd tracking
+ python run_tracker.py -s DragonBaby [-d (display fig)] [-f (save fig)]
+```
+ - You can provide a sequence configuration in two ways (see tracking/gen_config.py):
+   - ```python run_tracker.py -s [seq name]```
+   - ```python run_tracker.py -j [json path]```
 
 # References
 - py-MDNet package: https://github.com/HyeonseobNam/py-MDNet
