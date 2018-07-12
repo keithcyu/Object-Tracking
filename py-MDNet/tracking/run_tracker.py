@@ -126,10 +126,10 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
     result_bb[0] = target_bbox
 
     # Init model
-    model = MDNet(opts['model_path'])
-    if opts['use_gpu']:
-        model = model.cuda()
-    model.set_learnable_params(opts['ft_layers'])
+	model = MDNet(opts['model_path'])
+	if opts['use_gpu']:
+    	model = model.cuda()
+	model.set_learnable_params(opts['ft_layers'])
     
     # Init criterion and optimizer 
     criterion = BinaryLoss()

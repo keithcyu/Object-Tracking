@@ -12,7 +12,7 @@
 
 ### Decomposition
 ```bash
-cd py-MDNet/decomposition/
+cd decomposition/
 ```
 - edit **options.py** for training hyper parameters
 - edit **options_model.py** for layers to decompose

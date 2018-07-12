@@ -12,19 +12,20 @@ from keras import optimizers
 
 from data_prov import *
 from options import *
-from LR_SGD import *
+
 
 sys.path.append('../modules')
 from model import *
+from LR_SGD import *
 
 # img_home = '../dataset/'
 data_path = 'data/vot-otb.pkl'
 img_home = os.path.expanduser('~/Object_Tracking/py-MDNet/dataset/')
 
-
+'''
 def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['momentum'], w_decay=opts['w_decay'], clipnorm=opts['grad_clip']):
     
-    '''
+    # 
     params = model.get_learnable_params()
     # param_list = []
     lr_mult_dict = {}
@@ -36,11 +37,11 @@ def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['moment
         #param_list.append({'params': [p], 'lr':lr})
         lr_mult_dict[p] = lr
     #optimizer = optim.SGD(param_list, lr = lr, momentum=momentum, weight_decay=w_decay)
-    '''
+    # 
     # optimizer = optimizers.SGD(lr=lr_base, momentum=momentum, decay = w_decay, clipnorm=clipnorm)
     optimizer = LR_SGD(lr=lr_base, momentum = momentum, decay = w_decay, multipliers = lr_mult, clipnorm = clipnorm)
     return optimizer
-
+'''
 
 def train_mdnet():
     
@@ -57,13 +58,11 @@ def train_mdnet():
         dataset[k] = RegionDataset(img_dir, img_list, gt, opts)
 
     ## Init model ##
-    # model = MDNet(opts['init_model_path'], K)
     print opts['init_model_path']
     model = get_model(opts['init_model_path'], K)
-
-    if opts['use_gpu']:
+    # model = MDNet(opts['init_model_path'], K)
+    # if opts['use_gpu']:
         # model = model.cuda()
-        pass
     #  model.set_learnable_params(opts['ft_layers'])
         
     ## Init criterion and optimizer ##

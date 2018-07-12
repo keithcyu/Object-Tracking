@@ -11,7 +11,7 @@ from keras.layers.normalization import BatchNormalization
 from layers import *
 from metrics import *
 
-sys.path.insert(0, '../..')
+sys.path.insert(0, '../')
 from binarization_utils import *
 
 batch_norm_eps=1e-4

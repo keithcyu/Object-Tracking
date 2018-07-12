@@ -8,13 +8,12 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 from options import *
-sys.path.insert(0, '../pretrain')
 from data_prov import *
+sys.path.insert(0, '../modules')
 from model_svd import *
-# from options import *
 
-img_home = '../dataset/'
-data_path = '../pretrain/data/vot-otb.pkl'
+img_home = '../../py-MDNet/dataset/'
+data_path = 'data/vot-otb.pkl'
 
 def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['momentum'], w_decay=opts['w_decay']):
     params = model.get_learnable_params()
@@ -96,10 +95,11 @@ def train_mdnet():
             best_prec = cur_prec
             if opts['use_gpu']:
                 model = model.cpu()
-            states = {'shared_layers': model.layers.state_dict()}
-            states['branches_layer'] = model.branches.state_dict()
+            # states = {'shared_layers': model.layers.state_dict()}
+            # states['branches_layer'] = model.branches.state_dict()
             print("Save model to %s" % opts['model_path'])
-            torch.save(states, opts['model_path'])
+            # torch.save(states, opts['model_path'])
+            torch.save(model, opts['model_path'])
             if opts['use_gpu']:
                 model = model.cuda()
 
