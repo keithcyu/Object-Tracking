@@ -12,6 +12,8 @@ import torch.utils.data as data
 import torch.optim as optim
 from torch.autograd import Variable
 
+import tensorflow as tf
+
 sys.path.insert(0,'../modules')
 from sample_generator import *
 from data_prov import *
@@ -22,17 +24,41 @@ from gen_config import *
 from LR_SGD import *
 
 np.random.seed(123)
-torch.manual_seed(456)
-torch.cuda.manual_seed(789)
+# torch.manual_seed(456)
+# torch.cuda.manual_seed(789)
 
-def forward_samples(model, image, samples, out_layer='conv3'):
-    model.eval()
+data_path = '../pretrain/data/vot-otb.pkl'
+
+def bottleneck_model(model, optimizer, in_layer='conv1', out_layer='fc6'):
+    #model_in = model.input
+
+    for layer in model.layers:
+        if layer.name == in_layer:
+            model_in = layer.input
+        if layer.name == out_layer:
+            model_out = layer.output
+            break
+
+    bottleneck_model = Model(model_in, model_out)
+    bottleneck_model.compile(loss=BinaryLoss, optimizer=optimizer, metrics=[Precision])
+
+    return bottleneck_model
+
+
+
+def forward_samples(model, optimizer, image, samples, out_layer='conv3'):
+    # model.eval()
     extractor = RegionExtractor(image, samples, opts['img_size'], opts['padding'], opts['batch_test'])
     for i, regions in enumerate(extractor):
-        regions = Variable(regions)
-        if opts['use_gpu']:
-            regions = regions.cuda()
-        feat = model(regions, out_layer=out_layer)
+        # regions = Variable(regions)
+        # if opts['use_gpu']:
+            # regions = regions.cuda()
+        # feat = model(regions, out_layer=out_layer)
+
+        temp_model = bottleneck_model(model, optimizer, out_layer=out_layer)
+        regions = regions.transpose([0, 2, 3, 1])
+        feat = temp_model.predict(regions)
+
         if i==0:
             feats = feat.data.clone()
         else:
@@ -90,8 +116,10 @@ def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='
         neg_pointer = neg_next
 
         # create batch
-        batch_pos_feats = Variable(pos_feats.index_select(0, pos_cur_idx))
-        batch_neg_feats = Variable(neg_feats.index_select(0, neg_cur_idx))
+        # batch_pos_feats = Variable(pos_feats.index_select(0, pos_cur_idx))
+        # batch_neg_feats = Variable(neg_feats.index_select(0, neg_cur_idx))
+        batch_pos_feats = tf.gather(pos_feats, pos_cur_idx, axis=0)
+        batch_neg_feats = tf.gather(pos_feats, pos_cur_idx, axis=0)
 
         # hard negative mining
         if batch_neg_cand > batch_neg:
@@ -107,20 +135,32 @@ def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='
 
             top_idx = neg_cand_score.topk(batch_neg)
             batch_neg_feats = batch_neg_feats.index_select(0, Variable(top_idx))
-            model.train()
+            # model.train()
         
+        batch_all_feats = np.concatenate((batch_pos_feats, batch_neg_feats), axis=0)
+
         # forward
-        pos_score = model(batch_pos_feats, in_layer=in_layer)
-        neg_score = model(batch_neg_feats, in_layer=in_layer)
+        # pos_score = model(batch_pos_feats, in_layer=in_layer)
+        # neg_score = model(batch_neg_feats, in_layer=in_layer)
+
+        temp_model = bottleneck_model(model, optimizer, in_layer=in_layer)
+
+        Y_train = np.empty([batch_all_feats.shape[0], 2])
+        history = temp_model.fit(batch_all_feats, Y_train,
+                    batch_size=(opts['batch_pos'] + opts['batch_neg']), 
+                    epochs=1, verbose=0, shuffle=False)
         
         # optimize
-        loss = criterion(pos_score, neg_score)
-        model.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm(model.parameters(), opts['grad_clip'])
-        optimizer.step()
+        # loss = criterion(pos_score, neg_score)
+        # model.zero_grad()
+        # loss.backward()
+        # torch.nn.utils.clip_grad_norm(model.parameters(), opts['grad_clip'])
+        # optimizer.step()
 
-        #print "Iter %d, Loss %.4f" % (iter, loss.data[0])
+        loss = history.history['loss'][0]
+        prec[k] = history.history['Precision'][0]
+
+        print "Iter %d, Loss %.4f" % (iter, loss.data[0])
 
 
 def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
@@ -133,7 +173,23 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
     result_bb[0] = target_bbox
 
     # Init model
-    model = get_model(opts['init_model_path'], K)
+    ## find K ##
+    with open(data_path, 'rb') as fp:
+        data = pickle.load(fp)
+
+    K = len(data)
+
+    model = get_model(opts['model_path'], K)
+
+    '''
+    # Model reconstruction from JSON file
+    with open(opts['model_path']+'.json', 'r') as f:
+        model = model_from_json(f.read())
+
+    # Load weights into the new model
+    model.load_weights(opts['model_path']+'.h5')
+    '''
+
     # model = torch.load(opts['model_path'])
 	# if opts['use_gpu']:
         # model = model.cuda()
@@ -151,7 +207,7 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
     # Train bbox regressor
     bbreg_examples = gen_samples(SampleGenerator('uniform', image.size, 0.3, 1.5, 1.1),
                                  target_bbox, opts['n_bbreg'], opts['overlap_bbreg'], opts['scale_bbreg'])
-    bbreg_feats = forward_samples(model, image, bbreg_examples)
+    bbreg_feats = forward_samples(model, init_optimizer, image, bbreg_examples)
     bbreg = BBRegressor(image.size)
     bbreg.train(bbreg_feats, bbreg_examples, target_bbox)
 
@@ -167,8 +223,8 @@ def run_mdnet(img_list, init_bbox, gt=None, savefig_dir='', display=False):
     neg_examples = np.random.permutation(neg_examples)
 
     # Extract pos/neg features
-    pos_feats = forward_samples(model, image, pos_examples)
-    neg_feats = forward_samples(model, image, neg_examples)
+    pos_feats = forward_samples(model, init_optimizer, image, pos_examples)
+    neg_feats = forward_samples(model, init_optimizer, image, neg_examples)
     feat_dim = pos_feats.size(-1)
 
     # Initial training
@@ -332,6 +388,12 @@ if __name__ == "__main__":
     
     # Generate sequence config
     img_list, init_bbox, gt, savefig_dir, display, result_path = gen_config(args)
+
+    # fix k to 0
+    file = open('k.txt','w') 
+    file.write(str(0))
+    file.close()
+
 
     # Run tracker
     result, result_bb, fps = run_mdnet(img_list, init_bbox, gt=gt, savefig_dir=savefig_dir, display=display)

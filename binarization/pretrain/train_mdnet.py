@@ -99,7 +99,6 @@ def train_mdnet():
         
             # pos_score = model(pos_regions, k)
             # neg_score = model(neg_regions, k)
-            #model.compile(loss=BinaryLoss, optimizer=optimizer, metrics=[Precision])
 
             # Y_train = np.empty([opts['batch_pos']+opts['batch_neg'], 2]) # figure out output size? 
             Y_train = np.empty([all_regions.shape[0], 2])
@@ -139,6 +138,16 @@ def train_mdnet():
             # save both shared and branches
             # states = {'shared_layers': model.layers.state_dict()}
             # states['branches_layer'] = model.branches.state_dict()
+
+            # Save the weights
+            model.save_weights('model_weights.h5')
+            model.save_weights(opts['model_path'] + '.h5')
+
+            # Save the model architecture
+            # with open('model_architecture.json', 'w') as f:
+            with open(opts['model_path'] + '.json', 'w') as f:
+                f.write(model.to_json())
+
             print "Save model to %s" % opts['model_path']
             
             # torch.save(states, opts['model_path'])

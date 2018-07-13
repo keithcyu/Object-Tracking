@@ -8,14 +8,14 @@
 ## Usage
 
 ### Pretraining
-- please use py-MDNet to pretrain a model and copy the model into Decomposition directory
+- please use py-MDNet to pre-train a model and copy the model into Decomposition directory
 ```bash
 cp py-MDNet/models/mdnet_vot-otb.pth decomposition/models/mdnet_vot-otb.pth
 ```
 
 ### Decomposition
 ```bash
-cd decomposition/
+cd pretrain/
 ```
 - edit **options.py** for training hyper parameters
 - edit **options_model.py** for layers to decompose

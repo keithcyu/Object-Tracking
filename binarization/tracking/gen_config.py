@@ -7,7 +7,7 @@ def gen_config(args):
     if args.seq != '':
         # generate config from a sequence name
 
-        seq_home = '../dataset/OTB'
+        seq_home = '../../py-MDNet/dataset/OTB'
         save_home = '../result_fig'
         result_home = '../result'
         

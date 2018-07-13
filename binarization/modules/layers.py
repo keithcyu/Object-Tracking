@@ -196,5 +196,5 @@ class Branches(Layer):
             'kernel_constraint': constraints.serialize(self.kernel_constraint),
             'bias_constraint': constraints.serialize(self.bias_constraint)
         }
-        base_config = super(Dense, self).get_config()
+        base_config = super(Branches, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

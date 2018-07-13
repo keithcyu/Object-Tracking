@@ -5,6 +5,8 @@ from keras.legacy import interfaces
 import keras.backend as K
 from keras.optimizers import Optimizer
 
+from options import *
+
 class LR_SGD(Optimizer):
     """Stochastic gradient descent optimizer.
 
@@ -74,3 +76,19 @@ class LR_SGD(Optimizer):
                   'nesterov': self.nesterov}
         base_config = super(LR_SGD, self).get_config()
         return dict(list(base_config.items()) + list(config.items())) 
+
+def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['momentum'], w_decay=opts['w_decay'], clipnorm=opts['grad_clip']):
+    '''
+    params = model.get_learnable_params()
+    param_list = []
+    for k, p in params.iteritems():
+        lr = lr_base
+        for l, m in lr_mult.iteritems():
+            if k.startswith(l):
+                lr = lr_base * m
+        param_list.append({'params': [p], 'lr':lr})
+    optimizer = optim.SGD(param_list, lr = lr, momentum=momentum, weight_decay=w_decay)
+    '''
+    # optimizer = optimizers.SGD(lr=lr_base, momentum=momentum, decay = w_decay, clipnorm=clipnorm)
+    optimizer = LR_SGD(lr=lr_base, momentum = momentum, decay = w_decay, multipliers = lr_mult, clipnorm = clipnorm)
+    return optimizer
